@@ -1,8 +1,12 @@
 package com.example.weatherapp.di
 
+import com.example.weatherapp.data.remote.WeatherApi
+import com.example.weatherapp.data.repository.WeatherRepositoryImpl
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.dsl.module
 import retrofit2.Retrofit
+import retrofit2.converter.moshi.MoshiConverterFactory
 
 val appModule = module {
 
@@ -10,11 +14,17 @@ val appModule = module {
         Retrofit.Builder()
             .baseUrl("https://api.open-meteo.com/")
             .client(
-                OkHttpClient().Builder()
-
-
+                OkHttpClient.Builder()
+                    .addInterceptor(
+                        HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
+                    ).build()
             )
+            .addConverterFactory(MoshiConverterFactory.create())
+            .build()
+            .create(WeatherApi::class.java)
     }
+
+    single { WeatherRepositoryImpl(get()) }
 
 
 }
