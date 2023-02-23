@@ -1,11 +1,15 @@
 package com.example.weatherapp.di
 
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.weatherapp.data.location.DefaultLocationTracker
 import com.example.weatherapp.data.remote.WeatherApi
 import com.example.weatherapp.data.repository.WeatherRepositoryImpl
+import com.example.weatherapp.domain.location.LocationTracker
+import com.example.weatherapp.domain.repository.WeatherRepository
 import com.example.weatherapp.presentation.WeatherViewModel
+import com.google.android.gms.location.LocationServices
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import org.koin.android.ext.koin.androidApplication
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 import retrofit2.Retrofit
@@ -13,7 +17,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 
 val appModule = module {
 
-    single{
+    single {
         Retrofit.Builder()
             .baseUrl("https://api.open-meteo.com/")
             .client(
@@ -27,7 +31,12 @@ val appModule = module {
             .create(WeatherApi::class.java)
     }
 
-    single { WeatherRepositoryImpl(get()) }
+    single { LocationServices.getFusedLocationProviderClient(androidApplication()) }
 
-    viewModel {WeatherViewModel(get(), get()) }
+    single<LocationTracker> { DefaultLocationTracker(get(), androidApplication()) }
+
+    single<WeatherRepository> { WeatherRepositoryImpl(get()) }
+
+    viewModel { WeatherViewModel(get(), get()) }
 }
+
